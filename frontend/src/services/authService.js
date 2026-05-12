@@ -8,11 +8,21 @@ export const authService = {
 
   login: async (credentials) => {
     const response = await apiClient.post("/auth/login/", credentials);
-    if (response.data.access) {
-      localStorage.setItem("access_token", response.data.access);
+
+    // Extract access token from the tokens object
+    const accessToken =
+      response.data.tokens?.access_token || response.data.access;
+
+    if (accessToken) {
+      localStorage.setItem("access_token", accessToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
     }
-    return response.data;
+
+    return {
+      access: accessToken,
+      user: response.data.user,
+      ...response.data,
+    };
   },
 
   logout: () => {

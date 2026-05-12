@@ -52,10 +52,12 @@ class AuthService:
         logger.info(f"User created: {username}")
         return user
     
-    def login(self, username, password):
+    def login(self, identifier, password):
         """Authenticate user and return tokens"""
         
-        user = self.user_repo.get_by_username(username)
+        user = self.user_repo.get_by_username(identifier)
+        if not user:
+            user = self.user_repo.get_by_email(identifier)
         
         if not user or not check_password(password, user.password):
             raise ValueError('Invalid credentials')
@@ -68,7 +70,7 @@ class AuthService:
         user.save(update_fields=['last_active'])
         
         tokens = create_tokens(user.id)
-        logger.info(f"User logged in: {username}")
+        logger.info(f"User logged in: {user.username}")
         
         return user, tokens
     

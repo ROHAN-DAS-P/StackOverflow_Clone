@@ -84,17 +84,17 @@ class AuthController(generics.GenericAPIView):
     
     def login(self, request):
         """Login user and return tokens"""
-        username = request.data.get('username')
+        identifier = request.data.get('username') or request.data.get('email')
         password = request.data.get('password')
         
-        if not username or not password:
+        if not identifier or not password:
             return Response(
-                {'error': 'Username and password required'},
+                {'error': 'Username/email and password required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         try:
-            user, tokens = self.auth_service.login(username, password)
+            user, tokens = self.auth_service.login(identifier, password)
             user_serializer = UserSerializer(user)
             
             return Response(
@@ -146,6 +146,12 @@ class QuestionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     question_service = QuestionService()
     cache_service = CacheService()
+
+    def get_permissions(self):
+        # Public read access for question discovery endpoints.
+        if self.action in ['list', 'retrieve', 'trending', 'unanswered']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_serializer_class(self):
         if self.action == 'list':

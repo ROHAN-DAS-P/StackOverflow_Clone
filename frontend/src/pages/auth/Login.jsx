@@ -39,7 +39,11 @@ export default function Login() {
       setToken(data.access, data.user)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
+      setError(
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        'Login failed. Please check your credentials.'
+      )
       console.error('Error:', err)
     } finally {
       setLoading(false)
