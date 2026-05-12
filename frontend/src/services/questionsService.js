@@ -1,5 +1,13 @@
 import apiClient from "./api";
 
+/** Coalesce parallel/StrictMode trending calls; cache successes to reduce 429 rate limits. */
+let trendingInflight = null;
+let trendingCache = null;
+let trendingExpiresAt = 0;
+let trendingBackoffUntil = 0;
+const TRENDING_CACHE_MS = 120_000;
+const TRENDING_BACKOFF_MS = 60_000;
+
 export const questionsService = {
   getAll: async (page = 1, search = "", tag = "") => {
     const params = new URLSearchParams();
@@ -12,8 +20,34 @@ export const questionsService = {
   },
 
   getTrending: async () => {
-    const response = await apiClient.get("/questions/trending/");
-    return response.data;
+    const now = Date.now();
+    if (now < trendingBackoffUntil) {
+      return trendingCache ?? { results: [] };
+    }
+    if (trendingCache && now < trendingExpiresAt) {
+      return trendingCache;
+    }
+    if (trendingInflight) {
+      return trendingInflight;
+    }
+    trendingInflight = apiClient
+      .get("/questions/trending/")
+      .then((response) => {
+        trendingCache = response.data;
+        trendingExpiresAt = Date.now() + TRENDING_CACHE_MS;
+        trendingBackoffUntil = 0;
+        return trendingCache;
+      })
+      .catch((err) => {
+        if (err?.response?.status === 429) {
+          trendingBackoffUntil = Date.now() + TRENDING_BACKOFF_MS;
+        }
+        return trendingCache ?? { results: [] };
+      })
+      .finally(() => {
+        trendingInflight = null;
+      });
+    return trendingInflight;
   },
 
   getUnanswered: async (page = 1) => {

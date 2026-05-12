@@ -1,71 +1,62 @@
-import { Link, useLocation } from 'react-router-dom'
+import { memo, useEffect } from 'react'
+import { useSidebarStore } from '../../store/sidebarStore'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
+import SidebarPanel from './sidebar/SidebarPanel'
+import { IconChevronLeft, IconChevronRight } from './sidebar/sidebarIcons'
 
-export default function Sidebar() {
-  const location = useLocation()
-  
-  const isActive = (path) => location.pathname === path
+/**
+ * Responsive primary navigation: full width on large screens, collapsible rail on
+ * tablet, hidden in favor of the mobile drawer on small screens.
+ */
+function Sidebar() {
+  const bp = useBreakpoint()
+  const collapsed = useSidebarStore((s) => s.collapsed)
+  const toggleCollapsed = useSidebarStore((s) => s.toggleCollapsed)
+  const setCollapsed = useSidebarStore((s) => s.setCollapsed)
+
+  const isLg = bp === 'lg'
+  const effectiveCollapsed = !isLg && collapsed
+
+  // Desktop uses a full-width rail; collapse state only applies to tablet.
+  useEffect(() => {
+    if (isLg) setCollapsed(false)
+  }, [isLg, setCollapsed])
+
+  const widthClass = effectiveCollapsed ? 'w-[4.5rem]' : 'w-64'
 
   return (
-    <aside className="hidden md:block w-64 bg-white border-r border-gray-200 p-6">
-      <nav className="space-y-2">
-        <Link
-          to="/"
-          className={`block px-4 py-2 rounded-md transition ${
-            isActive('/') 
-              ? 'bg-primary text-white' 
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+    <aside
+      className={[
+        'relative z-30 hidden h-full min-h-0 shrink-0 flex-col md:flex',
+        'border-r border-gray-200/80 bg-white/90 shadow-sm backdrop-blur-md',
+        'transition-[width] duration-300 ease-out dark:border-white/10 dark:bg-gray-900/90',
+        widthClass,
+      ].join(' ')}
+      aria-label="Site navigation"
+    >
+      {/* Tablet-only collapse control */}
+      {!isLg ? (
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="absolute -right-3 top-6 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-md transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
+          title={effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!effectiveCollapsed}
+          aria-controls="sidebar-panel"
         >
-          🏠 Home
-        </Link>
-        
-        <Link
-          to="/questions"
-          className={`block px-4 py-2 rounded-md transition ${
-            isActive('/questions') 
-              ? 'bg-primary text-white' 
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          ❓ All Questions
-        </Link>
-        
-        <div className="pt-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Navigation</h3>
-          
-          <Link
-            to="/questions"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition"
-          >
-            Featured
-          </Link>
-          
-          <Link
-            to="/questions"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition"
-          >
-            Recent
-          </Link>
-          
-          <Link
-            to="/questions"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition"
-          >
-            Unanswered
-          </Link>
-        </div>
+          {effectiveCollapsed ? (
+            <IconChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <IconChevronLeft className="h-3.5 w-3.5" />
+          )}
+        </button>
+      ) : null}
 
-        <div className="pt-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Tags</h3>
-          <div className="flex flex-wrap gap-2 px-4">
-            {['React', 'Django', 'JavaScript', 'Python'].map(tag => (
-              <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-gray-200 cursor-pointer">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </nav>
+      <div id="sidebar-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <SidebarPanel collapsed={effectiveCollapsed} />
+      </div>
     </aside>
   )
 }
+
+export default memo(Sidebar)

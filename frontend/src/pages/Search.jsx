@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import QuestionCard from '../components/cards/QuestionCard'
 import { questionsService } from '../services/questionsService'
+import PageShell from '../components/layout/PageShell'
 
 export default function Search() {
   const [searchParams] = useSearchParams()
@@ -21,7 +22,6 @@ export default function Search() {
       setLoading(true)
       setError('')
       const data = await questionsService.search(query)
-      // Extract questions array from response
       setResults(data.questions || data.results || [])
     } catch (err) {
       setError('Search failed. Please try again.')
@@ -32,39 +32,39 @@ export default function Search() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <PageShell>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white lg:text-4xl">
           Search Results
         </h1>
         {query && (
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Results for "<span className="font-semibold">{query}</span>"
           </p>
         )}
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="inline-block animate-spin text-2xl">⏳</div>
-          <p className="text-gray-600 mt-2">Searching...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Searching...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
       ) : results.length === 0 ? (
-        <div className="card text-center text-gray-500 py-12">
-          <p className="text-lg mb-4">No results found</p>
+        <div className="card py-12 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+          <p className="mb-4 text-lg">No results found</p>
           <p className="text-sm">Try different keywords or check your spelling</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {results.map(question => (
+        <div className="grid gap-4 lg:gap-5">
+          {results.map((question) => (
             <QuestionCard key={question.id} question={question} />
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }

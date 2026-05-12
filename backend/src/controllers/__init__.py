@@ -7,6 +7,7 @@ from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from src.models import (
     User, Question, Answer, Article, CodeSnippet,
@@ -23,6 +24,22 @@ from src.middleware.error import ErrorResponseFormatter
 from src.utils import CacheService, SearchService
 
 logger = logging.getLogger('app')
+
+
+class StatsView(generics.GenericAPIView):
+    """Aggregate counts for public dashboard stats (single round-trip)."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        UserModel = get_user_model()
+        return Response(
+            {
+                'questions': Question.objects.count(),
+                'answers': Answer.objects.count(),
+                'members': UserModel.objects.count(),
+            }
+        )
 
 
 class HealthCheckView(generics.GenericAPIView):
@@ -226,6 +243,11 @@ class AnswerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     answer_service = AnswerService()
     notification_service = NotificationService()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         """Filter answers by question_id if provided"""

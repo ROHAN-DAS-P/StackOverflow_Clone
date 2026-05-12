@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.controllers import (
-    HealthCheckView, AuthController, UserViewSet, QuestionViewSet,
+    HealthCheckView, StatsView, AuthController, UserViewSet, QuestionViewSet,
     AnswerViewSet, VoteController, SearchController, NotificationViewSet
 )
 
@@ -19,6 +19,7 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 api_urlpatterns = [
     # Health check
     path('health/', HealthCheckView.as_view(), name='health'),
+    path('stats/', StatsView.as_view(), name='stats'),
     
     # Authentication
     path('auth/register/', AuthController.as_view(), {'action': 'register'}, name='register'),

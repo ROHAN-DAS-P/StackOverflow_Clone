@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
+import { queryClient } from '../../lib/queryClient'
+import { queryKeys } from '../../lib/queryKeys'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -57,6 +59,7 @@ export default function Register() {
         password: formData.password,
       })
       setToken(loginData.access, loginData.user)
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats })
       navigate('/')
     } catch (err) {
       const errorMsg = err.response?.data

@@ -26,9 +26,10 @@ function App() {
         
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/questions" element={<QuestionsList />} />
-          <Route path="/questions/:id" element={<QuestionDetail />} />
+          <Route path="/questions/unanswered" element={<QuestionsList />} />
           <Route path="/questions/create" element={token ? <CreateQuestion /> : <Navigate to="/auth/login" />} />
+          <Route path="/questions/:id" element={<QuestionDetail />} />
+          <Route path="/questions" element={<QuestionsList />} />
           <Route path="/search" element={<Search />} />
           <Route path="/profile/:id" element={<Profile />} />
         </Route>
