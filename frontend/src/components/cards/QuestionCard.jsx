@@ -61,11 +61,11 @@ export default function QuestionCard({ question }) {
             </span>
             <div className="flex items-center gap-2">
               <img 
-                src={`https://ui-avatars.com/api/?name=${question.author}`}
+                src={`https://ui-avatars.com/api/?name=${question.author?.username || question.author?.first_name || 'User'}`}
                 alt="Author"
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm text-gray-700 font-medium">{question.author}</span>
+              <span className="text-sm text-gray-700 font-medium">{question.author?.username || question.author?.first_name || 'Anonymous'}</span>
             </div>
           </div>
         </div>

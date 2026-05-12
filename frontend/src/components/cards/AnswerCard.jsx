@@ -61,12 +61,12 @@ export default function AnswerCard({ answer, onVote, isAccepted, onAccept, canAc
           <div className="flex items-center justify-between pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2">
               <img 
-                src={`https://ui-avatars.com/api/?name=${answer.author}`}
+                src={`https://ui-avatars.com/api/?name=${answer.author?.username || answer.author?.first_name || 'User'}`}
                 alt="Author"
                 className="w-8 h-8 rounded-full"
               />
               <div className="text-sm">
-                <div className="font-medium text-gray-900">{answer.author}</div>
+                <div className="font-medium text-gray-900">{answer.author?.username || answer.author?.first_name || 'Anonymous'}</div>
                 <div className="text-gray-500 text-xs">{formatDate(answer.created_at)}</div>
               </div>
             </div>

@@ -122,12 +122,12 @@ export default function QuestionDetail() {
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <div className="flex items-center gap-2">
             <img 
-              src={`https://ui-avatars.com/api/?name=${question.author}`}
+              src={`https://ui-avatars.com/api/?name=${question.author?.username || question.author?.first_name || 'User'}`}
               alt="Author"
               className="w-8 h-8 rounded-full"
             />
             <div className="text-sm">
-              <div className="font-medium text-gray-900">{question.author}</div>
+              <div className="font-medium text-gray-900">{question.author?.username || question.author?.first_name || 'Anonymous'}</div>
               <div className="text-gray-500 text-xs">
                 {new Date(question.created_at).toLocaleDateString()}
               </div>
