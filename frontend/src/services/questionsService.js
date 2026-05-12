@@ -41,7 +41,9 @@ export const questionsService = {
   },
 
   search: async (query) => {
-    const response = await apiClient.post("/search/", { query });
+    const response = await apiClient.get(
+      `/search/?q=${encodeURIComponent(query)}`,
+    );
     return response.data;
   },
 };

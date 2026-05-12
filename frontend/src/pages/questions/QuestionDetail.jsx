@@ -51,7 +51,7 @@ export default function QuestionDetail() {
     try {
       setSubmitting(true)
       await answersService.create({
-        question: id,
+        question_id: id,
         content: answerContent,
       })
       setAnswerContent('')

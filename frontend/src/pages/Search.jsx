@@ -21,7 +21,8 @@ export default function Search() {
       setLoading(true)
       setError('')
       const data = await questionsService.search(query)
-      setResults(data.results || data)
+      // Extract questions array from response
+      setResults(data.questions || data.results || [])
     } catch (err) {
       setError('Search failed. Please try again.')
       console.error('Error:', err)
