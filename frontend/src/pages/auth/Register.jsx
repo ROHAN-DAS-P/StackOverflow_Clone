@@ -48,6 +48,7 @@ export default function Register() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        password_confirm: formData.password_confirm,
       })
       
       // Auto login after registration

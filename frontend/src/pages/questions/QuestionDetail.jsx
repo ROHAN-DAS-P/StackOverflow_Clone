@@ -26,8 +26,13 @@ export default function QuestionDetail() {
       const data = await questionsService.getById(id)
       setQuestion(data)
       
+      // Get answers for this question - backend filters by question_id
       const answersData = await answersService.getByQuestion(id)
-      setAnswers(answersData.results || answersData)
+      // Handle different response formats
+      const answersList = Array.isArray(answersData) 
+        ? answersData 
+        : answersData.results || answersData.data || []
+      setAnswers(answersList)
     } catch (err) {
       setError('Failed to load question')
       console.error('Error:', err)
@@ -55,12 +60,25 @@ export default function QuestionDetail() {
         content: answerContent,
       })
       setAnswerContent('')
-      loadQuestion()
+      await loadQuestion()
     } catch (err) {
       setError('Failed to submit answer')
       console.error('Error:', err)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleVoteQuestion = async (voteType) => {
+    if (!user) {
+      navigate('/auth/login')
+      return
+    }
+    try {
+      await questionsService.vote(id, voteType)
+      await loadQuestion()
+    } catch (err) {
+      console.error('Vote failed:', err)
     }
   }
 
@@ -133,15 +151,32 @@ export default function QuestionDetail() {
               </div>
             </div>
           </div>
-          <div className="flex gap-6 text-center">
-            <div>
-              <div className="text-lg font-semibold">{question.votes_count || 0}</div>
-              <div className="text-xs text-gray-500">votes</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold">{answers.length}</div>
-              <div className="text-xs text-gray-500">answers</div>
-            </div>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span>{question.views_count || 0} views</span>
+            <span>•</span>
+            <span>
+              {new Date(question.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleVoteQuestion('upvote')}
+              className="text-gray-600 hover:text-primary transition"
+              title="Upvote"
+            >
+              👍 {question.votes_count || 0}
+            </button>
+            <button
+              onClick={() => handleVoteQuestion('downvote')}
+              className="text-gray-600 hover:text-primary transition"
+              title="Downvote"
+            >
+              👎
+            </button>
           </div>
         </div>
       </div>

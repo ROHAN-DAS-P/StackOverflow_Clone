@@ -2,7 +2,7 @@ import apiClient from "./api";
 
 export const answersService = {
   getByQuestion: async (questionId) => {
-    const response = await apiClient.get(`/answers/?question=${questionId}`);
+    const response = await apiClient.get(`/answers/?question_id=${questionId}`);
     return response.data;
   },
 

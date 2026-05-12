@@ -105,13 +105,13 @@ export default function Profile() {
             <div className="flex justify-between">
               <span className="text-gray-600">Member since</span>
               <span className="font-medium">
-                {new Date(user.date_joined).toLocaleDateString()}
+                {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Last seen</span>
               <span className="font-medium">
-                {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                {user.last_active ? new Date(user.last_active).toLocaleDateString() : 'Never'}
               </span>
             </div>
           </div>

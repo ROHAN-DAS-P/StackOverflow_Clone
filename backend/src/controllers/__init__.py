@@ -226,6 +226,14 @@ class AnswerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     answer_service = AnswerService()
     notification_service = NotificationService()
+
+    def get_queryset(self):
+        """Filter answers by question_id if provided"""
+        queryset = super().get_queryset()
+        question_id = self.request.query_params.get('question_id')
+        if question_id:
+            queryset = queryset.filter(question_id=question_id)
+        return queryset.order_by('-is_accepted', '-votes_count', '-created_at')
     
     def create(self, request, *args, **kwargs):
         """Create an answer to a question"""

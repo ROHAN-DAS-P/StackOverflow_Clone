@@ -46,4 +46,21 @@ export const questionsService = {
     );
     return response.data;
   },
+
+  vote: async (questionId, voteType) => {
+    const response = await apiClient.post("/votes/", {
+      question_id: questionId,
+      vote_type: voteType, // 'upvote' or 'downvote'
+    });
+    return response.data;
+  },
+
+  suggestions: async (query, signal) => {
+    if (!query || query.length < 2) return { questions: [] };
+    const response = await apiClient.get(
+      `/search/?q=${encodeURIComponent(query)}`,
+      signal ? { signal } : undefined,
+    );
+    return response.data;
+  },
 };

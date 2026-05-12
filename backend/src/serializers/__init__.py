@@ -10,15 +10,23 @@ from src.models import (
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
+    questions_count = serializers.SerializerMethodField()
+    answers_count = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'bio', 'profile_picture', 'reputation', 'is_verified',
-            'role', 'created_at', 'last_active'
+            'role', 'created_at', 'last_active', 'questions_count', 'answers_count'
         ]
-        read_only_fields = ['id', 'reputation', 'created_at', 'last_active']
+        read_only_fields = ['id', 'reputation', 'created_at', 'last_active', 'questions_count', 'answers_count']
+    
+    def get_questions_count(self, obj):
+        return obj.questions.count()
+    
+    def get_answers_count(self, obj):
+        return obj.answers.count()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
