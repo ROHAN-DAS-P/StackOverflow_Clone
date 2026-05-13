@@ -189,3 +189,58 @@ class SavedItemSerializer(serializers.ModelSerializer):
         model = SavedItem
         fields = ['id', 'item_type', 'item_id', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+class CommunityMemberSerializer(serializers.ModelSerializer):
+    """Serializer for community members with contribution stats"""
+    
+    questions = serializers.SerializerMethodField()
+    answers = serializers.SerializerMethodField()
+    lastActive = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'avatar', 'reputation', 'bio', 'is_verified',
+            'questions', 'answers', 'lastActive', 'created_at'
+        ]
+        read_only_fields = ['id', 'reputation', 'created_at']
+    
+    def get_avatar(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.url
+        return None
+    
+    def get_questions(self, obj):
+        return obj.questions.count()
+    
+    def get_answers(self, obj):
+        return obj.answers.count()
+    
+    def get_lastActive(self, obj):
+        if obj.last_active:
+            return obj.last_active.isoformat()
+        return None
+
+
+class CommunityMembersListSerializer(serializers.Serializer):
+    """Serializer for community members list response"""
+    
+    id = serializers.UUIDField()
+    username = serializers.CharField()
+    avatar = serializers.SerializerMethodField()
+    reputation = serializers.IntegerField()
+    bio = serializers.CharField(required=False, allow_blank=True)
+    is_verified = serializers.BooleanField()
+    questions = serializers.IntegerField()
+    answers = serializers.IntegerField()
+    lastActive = serializers.DateTimeField()
+    createdAt = serializers.DateTimeField(source='created_at')
+    
+    def get_avatar(self, obj):
+        if isinstance(obj, dict):
+            return obj.get('avatar')
+        elif hasattr(obj, 'profile_picture') and obj.profile_picture:
+            return obj.profile_picture.url
+        return None

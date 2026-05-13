@@ -333,3 +333,71 @@ class NotificationService:
     def mark_as_read(self, notification_id):
         """Mark notification as read"""
         self.notification_repo.mark_as_read(notification_id)
+
+
+class CommunityMembersService:
+    """Business logic for community members"""
+    
+    def __init__(self):
+        from src.repositories import CommunityMembersRepository
+        self.community_repo = CommunityMembersRepository()
+    
+    def get_active_contributors(self, limit=10, sort_by='reputation'):
+        """
+        Get active community members.
+        
+        Args:
+            limit: Maximum number of members to return
+            sort_by: 'reputation', 'recent', or 'answers'
+        
+        Returns:
+            List of user objects with contribution stats
+        """
+        if sort_by == 'recent':
+            users = self.community_repo.get_recent_contributors(limit=limit)
+        elif sort_by == 'answers':
+            users = self.community_repo.get_top_answerers(limit=limit)
+        else:  # Default to reputation
+            users = self.community_repo.get_active_contributors(limit=limit)
+        
+        # Build response with stats
+        members = []
+        for user in users:
+            member_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'avatar': user.profile_picture.url if user.profile_picture else None,
+                'reputation': user.reputation,
+                'bio': user.bio or '',
+                'is_verified': user.is_verified,
+                'questions': user.questions.count(),
+                'answers': user.answers.count(),
+                'lastActive': user.last_active.isoformat() if user.last_active else None,
+                'createdAt': user.created_at.isoformat() if user.created_at else None,
+            }
+            members.append(member_data)
+        
+        logger.info(f"Fetched {len(members)} active community members")
+        return members
+    
+    def get_member_profile(self, user_id):
+        """Get detailed profile of a community member"""
+        user = self.community_repo.get_by_id(user_id)
+        if not user:
+            raise ValueError('User not found')
+        
+        return {
+            'id': str(user.id),
+            'username': user.username,
+            'email': user.email,
+            'avatar': user.profile_picture.url if user.profile_picture else None,
+            'reputation': user.reputation,
+            'bio': user.bio or '',
+            'is_verified': user.is_verified,
+            'role': user.role,
+            'questions': user.questions.count(),
+            'answers': user.answers.count(),
+            'total_contributions': user.questions.count() + user.answers.count(),
+            'lastActive': user.last_active.isoformat() if user.last_active else None,
+            'joinedAt': user.created_at.isoformat() if user.created_at else None,
+        }

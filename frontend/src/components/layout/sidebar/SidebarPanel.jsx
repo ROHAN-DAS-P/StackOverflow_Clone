@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../../store/authStore'
 import SidebarItem from './SidebarItem'
+import CommunityMembers from './CommunityMembers'
 import TrendingTags from './TrendingTags'
 import UserProfileSection from './UserProfileSection'
 import {
@@ -80,11 +81,22 @@ function SidebarPanel({ collapsed, onNavigate, className = '' }) {
       </nav>
 
       {!collapsed ? (
-        <div className="shrink-0 border-t border-gray-200/60 px-2 py-3 dark:border-white/10">
-          <TrendingTags collapsed={collapsed} onTagClick={onNavigate} />
+        <div className="shrink-0 border-t border-gray-200/60 px-2 py-3 dark:border-white/10 space-y-4">
+          {/* Community Members Section */}
+          <div>
+            <CommunityMembers collapsed={collapsed} onMemberClick={onNavigate} />
+          </div>
+
+          {/* Trending Tags Section */}
+          <div>
+            <TrendingTags collapsed={collapsed} onTagClick={onNavigate} />
+          </div>
         </div>
       ) : (
-        <div className="shrink-0 border-t border-gray-200/60 dark:border-white/10" aria-hidden />
+        <div className="shrink-0 border-t border-gray-200/60 px-2 py-3 dark:border-white/10 space-y-2">
+          {/* Community Members - Collapsed */}
+          <CommunityMembers collapsed={collapsed} onMemberClick={onNavigate} />
+        </div>
       )}
 
       <div className="sticky bottom-0 z-10 mt-auto shrink-0 backdrop-blur-sm">
