@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import AnswerCard from '../../components/cards/AnswerCard'
+import QuestionStats from '../../components/stats/QuestionStats'
 import { questionsService } from '../../services/questionsService'
 import { answersService } from '../../services/answersService'
 import { useAuthStore } from '../../store/authStore'
@@ -164,37 +165,38 @@ export default function QuestionDetail() {
                   {question.author?.username || question.author?.first_name || 'Anonymous'}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {new Date(question.created_at).toLocaleDateString()}
+                  {new Date(question.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>{question.views_count || 0} views</span>
-              <span aria-hidden>•</span>
-              <span>
-                {new Date(question.created_at).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleVoteQuestion('upvote')}
-                className="text-gray-600 transition hover:text-primary dark:text-gray-300"
-                title="Upvote"
-              >
-                👍 {question.votes_count || 0}
-              </button>
-              <button
-                type="button"
                 onClick={() => handleVoteQuestion('downvote')}
-                className="text-gray-600 transition hover:text-primary dark:text-gray-300"
+                className="text-gray-600 transition hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400"
                 title="Downvote"
               >
                 👎
+              </button>
+              <QuestionStats
+                votes={question.votes_count || 0}
+                answers={question.answers_count || 0}
+                layout="compact"
+                variant="minimal"
+                interactive={true}
+                onVoteClick={handleVoteQuestion}
+              />
+              <button
+                type="button"
+                onClick={() => handleVoteQuestion('upvote')}
+                className="text-gray-600 transition hover:text-green-500 dark:text-gray-300 dark:hover:text-green-400"
+                title="Upvote"
+              >
+                👍
               </button>
             </div>
           </div>

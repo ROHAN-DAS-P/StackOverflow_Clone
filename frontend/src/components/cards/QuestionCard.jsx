@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import QuestionStats from '../stats/QuestionStats'
 
 export default function QuestionCard({ question }) {
   const formatDate = (date) => {
@@ -13,21 +14,13 @@ export default function QuestionCard({ question }) {
     <div className="card hover:shadow-md transition">
       <div className="flex gap-4">
         {/* Stats */}
-        <div className="flex flex-col items-center gap-2 text-center min-w-fit">
-          <div className="flex gap-2">
-            <div className="flex flex-col items-center">
-              <div className="text-sm text-gray-600">{question.votes_count || 0}</div>
-              <div className="text-xs text-gray-500">votes</div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="text-sm text-gray-600">{question.answers_count || 0}</div>
-              <div className="text-xs text-gray-500">answers</div>
-            </div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="text-sm font-semibold text-gray-700">{question.views || 0}</div>
-            <div className="text-xs text-gray-500">views</div>
-          </div>
+        <div className="flex items-center min-w-fit">
+          <QuestionStats 
+            votes={question.votes_count || 0}
+            answers={question.answers_count || 0}
+            layout="compact"
+            variant="card"
+          />
         </div>
 
         {/* Content */}

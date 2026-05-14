@@ -90,9 +90,9 @@ export default function Header() {
             className="flex shrink-0 items-center gap-2 outline-none ring-primary focus-visible:ring-2"
             aria-label="StackOverflow home"
           >
-            <div className="text-2xl font-bold text-primary">SO</div>
+            <div className="text-2xl font-bold text-primary">DevRoom</div>
             <span className="hidden font-semibold text-gray-800 sm:inline dark:text-gray-100">
-              StackOverflow
+              
             </span>
           </Link>
         </div>
