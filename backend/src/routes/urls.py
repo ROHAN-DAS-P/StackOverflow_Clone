@@ -6,7 +6,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.controllers import (
     HealthCheckView, StatsView, AuthController, UserViewSet, QuestionViewSet,
-    AnswerViewSet, VoteController, SearchController, NotificationViewSet
+    AnswerViewSet, VoteController, SearchController, NotificationViewSet,
+    CommunityMembersView
 )
 
 # Create router for viewsets
@@ -27,6 +28,9 @@ api_urlpatterns = [
     
     # ViewSet routes
     path('', include(router.urls)),
+    
+    # Community members
+    path('community-members/', CommunityMembersView.as_view(), name='community-members'),
     
     # Voting
     path('votes/', VoteController.as_view(), name='vote'),

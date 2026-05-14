@@ -398,6 +398,52 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user)
+
+
+class CommunityMembersView(generics.GenericAPIView):
+    """Community members view"""
+    permission_classes = [AllowAny]
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        from src.services import CommunityMembersService
+        self.community_service = CommunityMembersService()
+    
+    def get(self, request):
+        """Get list of active community members"""
+        try:
+            # Get query parameters
+            limit = int(request.query_params.get('limit', 10))
+            sort_by = request.query_params.get('sort', 'reputation')  # reputation, recent, answers
+            
+            # Validate limit
+            limit = min(max(limit, 1), 100)  # Between 1 and 100
+            
+            # Get members
+            members = self.community_service.get_active_contributors(
+                limit=limit,
+                sort_by=sort_by
+            )
+            
+            logger.info(f"Community members retrieved: {len(members)}")
+            
+            return Response({
+                'success': True,
+                'count': len(members),
+                'data': members
+            }, status=status.HTTP_200_OK)
+        
+        except ValueError as e:
+            return Response(
+                {'success': False, 'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Error fetching community members: {str(e)}")
+            return Response(
+                {'success': False, 'error': 'Failed to fetch community members'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def unread(self, request):

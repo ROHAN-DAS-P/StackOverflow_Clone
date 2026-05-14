@@ -295,3 +295,90 @@ class SavedItemRepository(BaseRepository):
             item_type=item_type,
             item_id=item_id
         ).exists()
+
+
+class CommunityMembersRepository(BaseRepository):
+    """Repository for fetching active community members"""
+    
+    def __init__(self):
+        super().__init__(User)
+    
+    def get_active_contributors(self, limit=10):
+        """
+        Get active community members sorted by reputation and contributions.
+        Only includes users with at least one contribution (question or answer).
+        """
+        from datetime import timedelta
+        from django.utils.timezone import now
+        
+        # Get users who have posted questions or answers
+        active_users = User.objects.annotate(
+            question_count=Count('questions', distinct=True),
+            answer_count=Count('answers', distinct=True),
+            total_contributions=Count('questions', distinct=True) + Count('answers', distinct=True)
+        ).filter(
+            # Only users with at least one contribution
+            Q(question_count__gt=0) | Q(answer_count__gt=0)
+        ).order_by(
+            '-reputation',  # Sort by reputation (descending)
+            '-total_contributions'  # Then by contribution count
+        )
+        
+        return active_users[:limit]
+    
+    def get_contributors_by_reputation(self, limit=10, min_reputation=0):
+        """Get community members sorted by reputation"""
+        return User.objects.annotate(
+            question_count=Count('questions', distinct=True),
+            answer_count=Count('answers', distinct=True)
+        ).filter(
+            Q(question_count__gt=0) | Q(answer_count__gt=0),
+            reputation__gte=min_reputation
+        ).order_by('-reputation')[:limit]
+    
+    def get_recent_contributors(self, limit=10, days=30):
+        """Get recently active contributors"""
+        from datetime import timedelta
+        from django.utils.timezone import now
+        
+        recent_date = now() - timedelta(days=days)
+        
+        return User.objects.annotate(
+            question_count=Count('questions', distinct=True),
+            answer_count=Count('answers', distinct=True)
+        ).filter(
+            Q(question_count__gt=0) | Q(answer_count__gt=0),
+            last_active__gte=recent_date
+        ).order_by('-last_active')[:limit]
+    
+    def get_top_answerers(self, limit=10):
+        """Get users with most answers"""
+        return User.objects.annotate(
+            answer_count=Count('answers', distinct=True),
+            question_count=Count('questions', distinct=True)
+        ).filter(
+            answer_count__gt=0
+        ).order_by('-answer_count')[:limit]
+    
+    def get_member_stats(self, user_id):
+        """Get detailed stats for a community member"""
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+        
+        question_count = user.questions.count()
+        answer_count = user.answers.count()
+        
+        return {
+            'id': user.id,
+            'username': user.username,
+            'profile_picture': user.profile_picture,
+            'reputation': user.reputation,
+            'questions': question_count,
+            'answers': answer_count,
+            'bio': user.bio,
+            'is_verified': user.is_verified,
+            'created_at': user.created_at,
+            'last_active': user.last_active,
+            'total_contributions': question_count + answer_count
+        }
