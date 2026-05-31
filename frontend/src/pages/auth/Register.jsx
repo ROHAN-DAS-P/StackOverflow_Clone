@@ -4,6 +4,7 @@ import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
 import { queryClient } from '../../lib/queryClient'
 import { queryKeys } from '../../lib/queryKeys'
+import GoogleAuthButton from '../../components/auth/GoogleAuthButton'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -73,6 +74,27 @@ export default function Register() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (response) => {
+    try {
+      setError('')
+      const data = await authService.googleLogin(response.access)
+      setToken(data.access, data.user)
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats })
+      navigate('/')
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        'Google registration failed. Please try again.'
+      )
+      console.error('Google registration error:', err)
+    }
+  }
+
+  const handleGoogleError = (errorMessage) => {
+    setError(errorMessage || 'Google authentication failed')
   }
 
   return (
@@ -162,10 +184,17 @@ export default function Register() {
           </form>
 
           {/* Divider */}
-          <div className="my-6 border-t border-gray-200"></div>
+          <div className="my-6 flex items-center gap-4">
+            <div className="flex-1 border-t border-gray-300"></div>
+            <span className="text-gray-500 text-sm font-medium">OR</span>
+            <div className="flex-1 border-t border-gray-300"></div>
+          </div>
+
+          {/* Google Sign Up */}
+          <GoogleAuthButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} isLoading={loading} />
 
           {/* Login Link */}
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 mt-6">
             Already have an account?{' '}
             <Link to="/auth/login" className="text-primary hover:text-secondary font-medium">
               Log in

@@ -25,6 +25,25 @@ export const authService = {
     };
   },
 
+  googleLogin: async (token) => {
+    const response = await apiClient.post("/auth/google/", { token });
+
+    // Extract access token from the tokens object
+    const accessToken =
+      response.data.tokens?.access_token || response.data.access;
+
+    if (accessToken) {
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+    }
+
+    return {
+      access: accessToken,
+      user: response.data.user,
+      ...response.data,
+    };
+  },
+
   logout: () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");

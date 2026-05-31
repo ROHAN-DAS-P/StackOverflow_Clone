@@ -25,6 +25,7 @@ api_urlpatterns = [
     # Authentication
     path('auth/register/', AuthController.as_view(), {'action': 'register'}, name='register'),
     path('auth/login/', AuthController.as_view(), {'action': 'login'}, name='login'),
+    path('auth/google/', AuthController.as_view(), {'action': 'google'}, name='google-oauth'),
     
     # ViewSet routes
     path('', include(router.urls)),

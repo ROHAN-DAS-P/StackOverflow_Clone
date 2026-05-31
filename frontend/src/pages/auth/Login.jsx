@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
+import GoogleAuthButton from '../../components/auth/GoogleAuthButton'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -48,6 +49,26 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (response) => {
+    try {
+      setError('')
+      const data = await authService.googleLogin(response.access)
+      setToken(data.access, data.user)
+      navigate('/')
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        'Google login failed. Please try again.'
+      )
+      console.error('Google login error:', err)
+    }
+  }
+
+  const handleGoogleError = (errorMessage) => {
+    setError(errorMessage || 'Google authentication failed')
   }
 
   return (
@@ -108,10 +129,17 @@ export default function Login() {
           </form>
 
           {/* Divider */}
-          <div className="my-6 border-t border-gray-200"></div>
+          <div className="my-6 flex items-center gap-4">
+            <div className="flex-1 border-t border-gray-300"></div>
+            <span className="text-gray-500 text-sm font-medium">OR</span>
+            <div className="flex-1 border-t border-gray-300"></div>
+          </div>
+
+          {/* Google Sign In */}
+          <GoogleAuthButton onSuccess={handleGoogleSuccess} onError={handleGoogleError} isLoading={loading} />
 
           {/* Sign Up Link */}
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 mt-6">
             Don't have an account?{' '}
             <Link to="/auth/register" className="text-primary hover:text-secondary font-medium">
               Sign up

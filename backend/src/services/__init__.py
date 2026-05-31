@@ -86,6 +86,90 @@ class AuthService:
             raise ValueError('Token expired')
         except jwt.InvalidTokenError:
             raise ValueError('Invalid token')
+    
+    def verify_google_token(self, token):
+        """Verify Google OAuth token and extract user info"""
+        from google.auth.transport import requests
+        from google.oauth2 import id_token
+        import os
+        
+        try:
+            # Verify the token with Google
+            idinfo = id_token.verify_oauth2_token(token, requests.Request())
+            
+            # Verify the token is for our app
+            google_client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+            if idinfo['aud'] != google_client_id:
+                raise ValueError('Token is not for this application')
+            
+            return idinfo
+        except ValueError as e:
+            raise ValueError(f'Invalid Google token: {str(e)}')
+        except Exception as e:
+            raise ValueError(f'Error verifying Google token: {str(e)}')
+    
+    def login_with_google(self, token):
+        """Login or register user with Google OAuth"""
+        # Verify token with Google
+        idinfo = self.verify_google_token(token)
+        
+        google_id = idinfo.get('sub')
+        email = idinfo.get('email')
+        name = idinfo.get('name', '')
+        picture = idinfo.get('picture', '')
+        
+        if not google_id or not email:
+            raise ValueError('Invalid Google token data')
+        
+        # Check if user exists by google_id
+        user = self.user_repo.get_by_google_id(google_id)
+        
+        if user:
+            # User exists, just update last active
+            user.last_active = now()
+            user.save(update_fields=['last_active'])
+            logger.info(f"User logged in with Google: {user.username}")
+        else:
+            # Check if email already exists
+            existing_user = self.user_repo.get_by_email(email)
+            
+            if existing_user:
+                # User exists with same email, link Google account
+                existing_user.google_id = google_id
+                existing_user.auth_provider = 'google'
+                if picture:
+                    existing_user.avatar = picture
+                existing_user.last_active = now()
+                existing_user.save()
+                user = existing_user
+                logger.info(f"Linked Google account to existing user: {user.username}")
+            else:
+                # Create new user
+                # Generate username from email
+                base_username = email.split('@')[0]
+                username = base_username
+                counter = 1
+                while self.user_repo.get_by_username(username):
+                    username = f"{base_username}{counter}"
+                    counter += 1
+                
+                user = self.user_repo.create(
+                    username=username,
+                    email=email,
+                    first_name=name.split()[0] if name else '',
+                    last_name=' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
+                    password=make_password(None),  # No password for OAuth users
+                    google_id=google_id,
+                    avatar=picture,
+                    auth_provider='google',
+                    is_active=True
+                )
+                logger.info(f"New user created via Google: {username}")
+        
+        # Generate JWT tokens
+        tokens = create_tokens(user.id)
+        
+        return user, tokens
 
 
 class QuestionService:

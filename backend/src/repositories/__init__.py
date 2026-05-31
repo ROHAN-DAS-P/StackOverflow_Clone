@@ -71,6 +71,13 @@ class UserRepository(BaseRepository):
         except self.model.DoesNotExist:
             return None
     
+    def get_by_google_id(self, google_id):
+        """Get user by Google ID"""
+        try:
+            return self.model.objects.get(google_id=google_id)
+        except self.model.DoesNotExist:
+            return None
+    
     def get_top_contributors(self, limit=10):
         """Get top contributors by reputation"""
         return self.model.objects.all().order_by('-reputation')[:limit]
