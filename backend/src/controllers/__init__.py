@@ -65,6 +65,8 @@ class AuthController(generics.GenericAPIView):
             return self.register(request)
         elif action == 'login':
             return self.login(request)
+        elif action == 'google':
+            return self.google(request)
         return Response({'error': 'Invalid action'}, status=400)
     
     def register(self, request):
@@ -126,6 +128,41 @@ class AuthController(generics.GenericAPIView):
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_401_UNAUTHORIZED
+            )
+    
+    def google(self, request):
+        """Login/Register with Google OAuth"""
+        token = request.data.get('token')
+        
+        if not token:
+            return Response(
+                {'error': 'Google token required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            user, tokens = self.auth_service.login_with_google(token)
+            user_serializer = UserSerializer(user)
+            
+            return Response(
+                {
+                    'message': 'Login successful',
+                    'user': user_serializer.data,
+                    'tokens': tokens,
+                    'auth_provider': 'google'
+                },
+                status=status.HTTP_200_OK
+            )
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        except Exception as e:
+            logger.error(f"Google OAuth error: {str(e)}")
+            return Response(
+                {'error': 'Google authentication failed'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 

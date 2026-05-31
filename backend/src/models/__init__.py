@@ -16,12 +16,19 @@ class User(AbstractUser):
         MODERATOR = 'moderator', 'Moderator'
         USER = 'user', 'Regular User'
     
+    class AuthProvider(models.TextChoices):
+        EMAIL = 'email', 'Email'
+        GOOGLE = 'google', 'Google'
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.USER)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    avatar = models.URLField(blank=True, null=True, help_text='Avatar URL from OAuth provider')
     reputation = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     is_verified = models.BooleanField(default=False)
+    auth_provider = models.CharField(max_length=20, choices=AuthProvider.choices, default=AuthProvider.EMAIL)
+    google_id = models.CharField(max_length=255, blank=True, null=True, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_active = models.DateTimeField(default=now)
